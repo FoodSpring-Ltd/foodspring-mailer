@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.retry.annotation.Recover;
@@ -40,9 +41,9 @@ public class MailerService {
     private Map<Enum<EmailType>, String> mailTemplate = new HashMap<>();
 
     public MailerService() {
-        mailTemplate.put(VER_NEW_TOKEN_EMAIL, "\\data\\ver_token_baru.html");
-        mailTemplate.put(VER_REGIS, "\\data\\ver_regis.html");
-        mailTemplate.put(FORGOT_PASSWORD, "\\data\\ver_lupa_pwd.html");
+        mailTemplate.put(VER_NEW_TOKEN_EMAIL, new ClassPathResource("data/ver_token_baru.html").getPath());
+        mailTemplate.put(VER_REGIS, new ClassPathResource("data/ver_regis.html").getPath());
+        mailTemplate.put(FORGOT_PASSWORD, new ClassPathResource("data/ver_lupa_pwd.html").getPath());
         strException[0] = "MailerService";
 
     }
@@ -66,13 +67,12 @@ public class MailerService {
             if (!success) {
                 throw new Exception("Can't send email");
             }
-            channel.basicAck(tag, false);
+
             logger.info("Email sent!");
 
         } catch (Exception e) {
             strException[1] = "sendToken(String mailAddress, String subject, String purpose, String token) -- LINE 38";
             LoggingFile.exceptionString(strException, e, "y");
-            channel.basicReject(tag, true);
             throw new Exception(e.getMessage());
         }
     }
